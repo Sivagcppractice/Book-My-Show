@@ -25,3 +25,32 @@ ENV PORT=3000
 
 # Start the application
 CMD ["npm", "start"]
+
+##############   Docker image file compressed 680mb to 100mb   #################
+
+# Stage 1: Build dependencies
+FROM node:18-alpine AS builder
+WORKDIR /app
+
+# Copy package.json and package-lock.json
+COPY package.json package-lock.json ./
+RUN npm install --only=production
+
+# Stage 2: Production image
+FROM node:18-alpine
+WORKDIR /app
+
+# Copy only necessary files from builder stage
+COPY --from=builder /app/node_modules ./node_modules
+COPY . .
+
+# Set environment variables
+ENV NODE_OPTIONS=--openssl-legacy-provider
+ENV PORT=3000
+
+# Expose port
+EXPOSE 3000
+
+# Start application
+CMD ["npm", "start"]
+
